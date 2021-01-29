@@ -3,10 +3,16 @@ use actix_web::error::Error as ActixError;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use std::io::{Error, ErrorKind};
 use std::{process::Command, sync::Arc};
+use serde_json::json;
 
 async fn toggle(name: web::Data<String>) -> Result<HttpResponse, ActixError> {
     execute_toggle(name.into_inner()).await?;
     Ok(HttpResponse::Ok().finish())
+}
+
+async fn status(name: web::Data<String>) -> Result<HttpResponse, ActixError> {
+    let res = get_status(name.into_inner()).await?;
+    Ok(HttpResponse::Ok().json(json!({ "muted": res})))
 }
 
 async fn execute_toggle(mic_name: Arc<String>) -> std::io::Result<()> {
@@ -26,6 +32,26 @@ async fn execute_toggle(mic_name: Arc<String>) -> std::io::Result<()> {
     Ok(())
 }
 
+/// True means muted.
+async fn get_status(mic_name: Arc<String>) -> std::io::Result<bool> {
+    web::block::<_, bool, std::io::Error>(move || {
+        let output = Command::new("SoundVolumeView.exe")
+            .args(&["/GetMute", &*mic_name])
+            .output()?
+            .status
+            .code()
+            .ok_or(Error::new(ErrorKind::Other, "No code provided!"))?;
+        Ok(output == 1)
+    })
+    .await
+    .map_err(|e| match e {
+        BlockingError::Error(e) => e,
+        actix_web::error::BlockingError::Canceled => {
+            Error::new(ErrorKind::Other, "Failed to block!")
+        }
+    })
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix=info,actix_web=info");
@@ -42,7 +68,8 @@ async fn main() -> std::io::Result<()> {
             // enable logger
             .app_data(mic_name.clone())
             .wrap(middleware::Logger::default())
-            .service(web::resource("/toggle").to(toggle))
+            .route("/toggle", web::get().to(toggle))
+            .route("/status", web::get().to(status))
     })
     .bind("0.0.0.0:8080")?
     .run()
