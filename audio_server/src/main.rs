@@ -68,7 +68,7 @@ async fn main() -> std::io::Result<()> {
             // enable logger
             .app_data(mic_name.clone())
             .wrap(middleware::Logger::default())
-            .route("/toggle", web::get().to(toggle))
+            .route("/toggle", web::post().to(toggle))
             .route("/status", web::get().to(status))
     })
     .bind("0.0.0.0:8080")?
