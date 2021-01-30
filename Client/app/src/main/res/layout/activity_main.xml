@@ -30,4 +30,15 @@
         android:background="@null"
         android:src="@drawable/mic_unmute" />
 
+    <ImageButton
+        android:id="@+id/refreshBtn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/muteBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:src="@drawable/refresh" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

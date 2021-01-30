@@ -20,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageButton toggleBtn;
 
+    private ImageButton refreshBtn;
+
     private ToggleState toggleState;
 
     private APIHandler handler;
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.toggleBtn = this.findViewById(R.id.muteBtn);
+        this.refreshBtn = this.findViewById(R.id.refreshBtn);
         EditText serverAddr = this.findViewById(R.id.serverAddr);
 
         this.ctx = this.getApplicationContext();
@@ -56,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
         this.handler = new APIHandler("192.168.0.234");
 
         toggleBtn.setOnClickListener(v -> this.toggle());
+
+        refreshBtn.setOnClickListener( v -> this.fetchStatus());
 
         this.fetchStatus();
     }
