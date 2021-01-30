@@ -16,10 +16,25 @@ async fn status(name: web::Data<String>) -> Result<HttpResponse, ActixError> {
 }
 
 async fn execute_toggle(mic_name: Arc<String>) -> std::io::Result<()> {
+    let muted = get_status(Arc::clone(&mic_name)).await?;
     web::block::<_, (), std::io::Error>(move || {
-        Command::new("SoundVolumeView.exe")
-            .args(&["/Switch", &*mic_name])
+        if muted {
+            Command::new("SoundVolumeView.exe")
+                .args(&["/Unmute", &*mic_name])
+                .output()?;
+            Command::new("SoundVolumeView.exe")
+                .args(&["/Enable", &*mic_name])
+                .output()?;
+        }
+        else {
+            Command::new("SoundVolumeView.exe")
+            .args(&["/Disable", &*mic_name])
             .output()?;
+
+            Command::new("SoundVolumeView.exe")
+                .args(&["/Mute", &*mic_name])
+                .output()?;
+        }
         Ok(())
     })
     .await
